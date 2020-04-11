@@ -18,10 +18,24 @@ public class HibernateUtil<T> {
 	@Autowired
 	EntityManager entityManager;
 	
-	@Transactional
 	public T save(T object) {
 		Session session=entityManager.unwrap(Session.class);
 		return (T) session.save(object);
+	}
+	
+	public void saveOrUpdate(T object,String entity) {
+		Session session=entityManager.unwrap(Session.class);
+		 session.saveOrUpdate(entity,object);
+	}
+	public void update(T object) {
+		Session session=entityManager.unwrap(Session.class);
+		 session.update(object);
+	}
+	
+	public Query<T> createQuery(String query)
+	{
+		Session session = entityManager.unwrap(Session.class);
+		return session.createQuery(query);
 	}
 	
 	@Transactional

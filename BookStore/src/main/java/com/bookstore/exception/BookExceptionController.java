@@ -16,5 +16,9 @@ public class BookExceptionController {
 	public ResponseEntity<Object> bookAlradyExistException(BookAlreadyExist bookAlreadyExist){
 		return new ResponseEntity<>("Book Already Exist",HttpStatus.ALREADY_REPORTED);
 	}
+	@ExceptionHandler (value = InternalServerError.class)
+	public ResponseEntity<Object> internalServerError(InternalServerError serverError){
+		return new ResponseEntity<> ("Internal Server Error",HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 	
 }

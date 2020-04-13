@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bookstore.user.model.User;
+import com.bookstore.user.response.UserData;
 import com.bookstore.user.response.UserResponse;
 import com.bookstore.user.service.IUserService;
 
@@ -37,4 +38,10 @@ public class UserController {
 	public ResponseEntity<UserResponse> loginUser(@PathVariable("email") String email,@RequestHeader("password") String password) {
 		return service.loginUser(email,password);
 	}
+	@GetMapping("/{token}")
+	public ResponseEntity<UserData> getUserById(@PathVariable("token") String token) {
+//		return service.getUserByID(token);
+		return null;
+	}
+
 }

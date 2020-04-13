@@ -19,14 +19,17 @@ public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private String uId;
+	private int uId;
 	@Column(name = "FIRST_NAME")
 	@NotBlank(message = "First Name is mandatory")
 	private String firstName;
 	
 	@Column(name = "LAST_NAME")
 	private String lastName;
-
+	
+	@Column(name = "PASSWORD")
+	@NotBlank(message = "Password is mandatory")
+	private String password;
 	@Column(name = "EMAIL", unique = true)
 	@NotNull
 	private String email;

@@ -7,11 +7,11 @@ import com.bookstore.response.BookResponse;
 
 public interface IBookService {
 	
-	public ResponseEntity<BookResponse> addBook(Book book);
+	public ResponseEntity<BookResponse> addBook(Book book,String token);
 	
-	public ResponseEntity<BookResponse> removeBook(String bookName);
+	public ResponseEntity<BookResponse> removeBook(String bookName,String token);
 	
-	public ResponseEntity<BookResponse> getAllBooks();
+	public ResponseEntity<BookResponse> getAllBooks(String token);
 	
-	public ResponseEntity<BookResponse> updateBookDetails(String bookName,Book updatedBook);
+	public ResponseEntity<BookResponse> updateBookDetails(String bookName,Book updatedBook,String token);
 }

@@ -7,8 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.bookstore.user.configuration.PasswordEncoderConfiguration;
 import com.bookstore.user.dao.IUserDAO;
+import com.bookstore.user.exception.AuthenticationFailedException;
+import com.bookstore.user.exception.InvalidTokenOrExpiredException;
+import com.bookstore.user.exception.UserAlradyRegisterException;
 import com.bookstore.user.model.User;
 import com.bookstore.user.response.UserResponse;
 import com.bookstore.user.util.DateValidator;
@@ -47,33 +51,35 @@ public class UserServiceImpl implements IUserService {
 					.body(new UserResponse(208, "Verification Link Sent to your email ===>" + user.getEmail()
 							+ "<=== please verify your email first"));
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new UserResponse(400, "User Already Registered"));
+			throw new UserAlradyRegisterException("User Already Registered", HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	@Override
 	public ResponseEntity<UserResponse> activateUser(String token) {
-		int id = generateToken.parseToken(token);
+		int id=0;
+		try {
+			id = generateToken.parseToken(token);
+		}catch (SignatureVerificationException e) {
+			throw new InvalidTokenOrExpiredException("Invalid Token or Token Expired", HttpStatus.BAD_REQUEST);
+		}
 		if (userDao.activateUSer(id) > 0) {
 			return ResponseEntity.status(HttpStatus.ACCEPTED)
 					.body(new UserResponse(208, "Your Account Activate Successfully"));
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new UserResponse(400, "User Not Registered Or Token Expired"));
+			throw new InvalidTokenOrExpiredException("User Not Registered Or Token Expired", HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	public ResponseEntity<UserResponse> loginUser(String email, String password) {
-			Optional<User> user = Optional.ofNullable(userDao.getUser(email));
-			if(user.isPresent()&& passwordEncryption.passwordEncoder().matches(password, user.get().getPassword())) {
+		Optional<User> user = Optional.ofNullable(userDao.getUser(email));
+		if (user.isPresent() && passwordEncryption.passwordEncoder().matches(password, user.get().getPassword())) {
 			return ResponseEntity.status(HttpStatus.ACCEPTED)
 					.body(new UserResponse(202, "User Login Successfull WellCome Mr." + user.get().getFirstName() + " "
 							+ user.get().getLastName()));
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new UserResponse(400, "Invalid UserName Or Password"));
+			throw new AuthenticationFailedException("Invalid UserName Or Password", HttpStatus.BAD_REQUEST);
 		}
 	}
-	
-	
+
 }

@@ -14,4 +14,6 @@ public interface IBookService {
 	public ResponseEntity<BookResponse> getAllBooks(String token);
 	
 	public ResponseEntity<BookResponse> updateBookDetails(String bookName,Book updatedBook,String token);
+	public ResponseEntity<BookResponse> getSellerBooks(String token);
+
 }

@@ -9,4 +9,5 @@ public interface IUserDAO {
 	public int activateUSer(int id);
 	public User getUser(String userName);
 	public User loginUser(String email,String password);
+	public User getUserById(int id);
 }

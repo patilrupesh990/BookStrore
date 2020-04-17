@@ -41,7 +41,11 @@ public class BookController {
 	}
 	
 	@GetMapping("/getAllBooks")
-	public ResponseEntity<BookResponse> getBooks(@RequestHeader String token){
+	public ResponseEntity<BookResponse> getAllBooks(@RequestHeader String token){
 		return bookservice.getAllBooks(token);
+	}
+	@GetMapping("/sellerBooks")
+	public ResponseEntity<BookResponse> getSellerBooks(@RequestHeader String token){
+		return bookservice.getSellerBooks(token);
 	}
 }

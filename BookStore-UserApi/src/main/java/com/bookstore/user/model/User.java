@@ -45,7 +45,7 @@ public class User {
 	@Column(name = "USER_NAME")
 	@NotBlank(message = "UserName is mandatory")
 	private String userName;
-
+	
 	@Column(name = "REGISTRATION_DATE")
 	@NotNull
 	private String creationTime;
@@ -56,5 +56,9 @@ public class User {
 	@Column(name = "Verified")
 	@NotNull
 	private boolean activate;
-
+	
+	@Column(name="IS_SELLER")
+	@NotNull
+	private boolean isSeller;
+	
 }

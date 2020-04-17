@@ -9,14 +9,20 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @Table(name="books_details")
 @Entity
+@ToString
 public class Book {
 	@Id 
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int bookId;
+	
+	@Column
+	@NotNull
+	private int userId;
 	
 	@Column
 	@NotNull

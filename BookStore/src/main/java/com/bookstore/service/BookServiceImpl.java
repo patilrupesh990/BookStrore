@@ -1,5 +1,8 @@
 package com.bookstore.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +21,6 @@ import com.bookstore.model.Book;
 import com.bookstore.model.UserData;
 import com.bookstore.response.BookResponse;
 import com.bookstore.util.JwtTokenUtil;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -31,12 +33,15 @@ public class BookServiceImpl implements IBookService {
 	RestTemplate restTemplate;
 	@Autowired
 	private JwtTokenUtil generateToken;
+	
+	static int userId;
 
 	@Override
 	public ResponseEntity<BookResponse> addBook(Book book, String token) {
 		if (verifyUser(token)) {
 			String bookName = book.getBookName().toLowerCase().trim();
 			if (bookdao.getBookByName(bookName) == null) {
+				book.setUserId(userId);
 				bookdao.addBook(book);
 				return ResponseEntity.status(HttpStatus.ACCEPTED)
 						.body(new BookResponse(book, 202, book.getBookName() + " Book Added"));
@@ -81,6 +86,23 @@ public class BookServiceImpl implements IBookService {
 			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
 		}
 	}
+	@Override
+	public ResponseEntity<BookResponse> getSellerBooks(String token) {
+		if (verifyUser(token)) {
+			if (bookdao.getAllBooks() != null) {
+				List<Book> books= bookdao.getAllBooks().stream().filter(p->p.getUserId()==userId).
+				collect(Collectors.toList());
+				
+				return ResponseEntity.status(HttpStatus.ACCEPTED).body(new BookResponse(202,
+						"Total Books Are:" + books.size(),
+						books));
+			} else {
+				throw new BookNotFoundException();
+			}
+		} else {
+			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
+		}
+	}
 
 	@Override
 	public ResponseEntity<BookResponse> updateBookDetails(String bookName, Book updatedBook, String token) {
@@ -104,6 +126,7 @@ public class BookServiceImpl implements IBookService {
 		try {
 		log.info("verifyUserApi Using RestTemplate From UserApi Success--------->:"
 				+ (userData.getUId() == generateToken.parseToken(token)));
+		userId=userData.getUId();
 		return (userData.getUId() == generateToken.parseToken(token));
 		}catch (SignatureVerificationException|JWTDecodeException|AlgorithmMismatchException e) {
 			throw new InvalidTokenOrExpiredException("Invalid Token or Token Expired", HttpStatus.BAD_REQUEST);

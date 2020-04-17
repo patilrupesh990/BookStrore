@@ -65,10 +65,20 @@ public class UserDAOImpl implements IUserDAO {
 			hquery.setParameter("uname", email);
 			return hquery.getSingleResult();
 		} catch (NoResultException e) {
-			System.out.println(e);
 			return null;
 		}
 
+	}
+
+	public User getUserById(int id) {
+		try {
+			String query = "From User where uId=:id";
+			Query<User> hquery = hibernateUtil.createQuery(query);
+			hquery.setParameter("id", id);
+			return hquery.getSingleResult();
+		} catch (NoResultException e) {
+			return null;
+		}
 	}
 
 	@Override

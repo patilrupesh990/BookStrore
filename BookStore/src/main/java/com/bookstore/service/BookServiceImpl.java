@@ -20,7 +20,9 @@ import com.bookstore.exception.UserDoesNotExistException;
 import com.bookstore.model.Book;
 import com.bookstore.model.UserData;
 import com.bookstore.response.BookResponse;
+import com.bookstore.util.BLOBUtil;
 import com.bookstore.util.JwtTokenUtil;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -54,16 +56,16 @@ public class BookServiceImpl implements IBookService {
 	}
 
 	@Override
-	public ResponseEntity<BookResponse> removeBook(String bookName, String token) {
+	public ResponseEntity<BookResponse> removeBook(int id, String token) {
 		if (verifyUser(token)) {
-			log.info("book data"+bookdao.getBookByName(bookName));
-			if (bookdao.getBookByName(bookName) != null) {
-				if (bookdao.deleteBook(bookName) > 0)
+			log.info("book data" + bookdao.getBookByBookId(id));
+			if (bookdao.getBookByBookId(id) != null) {
+				if (bookdao.deleteBook(id) > 0)
 					return ResponseEntity.status(HttpStatus.ACCEPTED)
-							.body(new BookResponse(202, bookName + " Deleted Successfully"));
+							.body(new BookResponse(202, bookdao.getBookByBookId(id).getBookName() + " Deleted Successfully"));
 				else
 					return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-							.body(new BookResponse(502, bookName + " Could Not delete Please Try Again"));
+							.body(new BookResponse(502, bookdao.getBookByBookId(id).getBookName() + " Could Not delete Please Try Again"));
 			} else {
 				throw new BookNotFoundException();
 			}
@@ -86,22 +88,38 @@ public class BookServiceImpl implements IBookService {
 			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
 		}
 	}
+
 	@Override
 	public ResponseEntity<BookResponse> getSellerBooks(String token) {
 		if (verifyUser(token)) {
 			if (bookdao.getAllBooks() != null) {
-				List<Book> books= bookdao.getAllBooks().stream().filter(p->p.getUserId()==userId).
-				collect(Collectors.toList());
-				
-				return ResponseEntity.status(HttpStatus.ACCEPTED).body(new BookResponse(202,
-						"Total Books Are:" + books.size(),
-						books));
+				List<Book> books = bookdao.getAllBooks().stream().filter(p -> p.getUserId() == userId)
+						.collect(Collectors.toList());
+
+				return ResponseEntity.status(HttpStatus.ACCEPTED)
+						.body(new BookResponse(202, "Total Books Are:" + books.size(), books));
 			} else {
 				throw new BookNotFoundException();
 			}
 		} else {
 			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	@Override
+	public ResponseEntity<BookResponse> uploadBookImage(String token, byte[] bytes, int bookId) {
+		if (verifyUser(token)) {
+			Book book=bookdao.getCurrentBook(bookId);
+			if ( book!= null) {
+				book.setBookImage(BLOBUtil.compressBytes(bytes));
+				bookdao.uploadImage(book);
+				return ResponseEntity.status(HttpStatus.ACCEPTED)
+						.body(new BookResponse(202, "Image Uplaoded Successfully"));
+			}
+		} else {
+			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
+		}
+		return null;
 	}
 
 	@Override
@@ -124,11 +142,11 @@ public class BookServiceImpl implements IBookService {
 		UserData userData = restTemplate.getForObject("http://localhost:8092/users/" + token, UserData.class);
 		log.info("--------->>>>>>>>>>>>Accessing DataFrom UserApi<<<<<<<<<<<---------------------");
 		try {
-		log.info("verifyUserApi Using RestTemplate From UserApi Success--------->:"
-				+ (userData.getUId() == generateToken.parseToken(token)));
-		userId=userData.getUId();
-		return (userData.getUId() == generateToken.parseToken(token));
-		}catch (SignatureVerificationException|JWTDecodeException|AlgorithmMismatchException e) {
+			log.info("verifyUserApi Using RestTemplate From UserApi Success--------->:"
+					+ (userData.getUId() == generateToken.parseToken(token)));
+			userId = userData.getUId();
+			return (userData.getUId() == generateToken.parseToken(token));
+		} catch (SignatureVerificationException | JWTDecodeException | AlgorithmMismatchException e) {
 			throw new InvalidTokenOrExpiredException("Invalid Token or Token Expired", HttpStatus.BAD_REQUEST);
 		}
 	}

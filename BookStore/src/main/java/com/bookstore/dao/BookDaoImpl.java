@@ -56,10 +56,10 @@ public class BookDaoImpl implements IBookDAO {
 
 	@Override
 	@Transactional
-	public int deleteBook(String bookName) {
-		String query = "DELETE FROM Book where bookName=:name";
+	public int deleteBook(int id) {
+		String query = "DELETE FROM Book where bookId=:id";
 		Query<Book> hQuery = hibernateUtil.createQuery(query);
-		hQuery.setParameter("name", bookName);
+		hQuery.setParameter("id", id);
 		return hQuery.executeUpdate();
 	}
 
@@ -83,5 +83,21 @@ public class BookDaoImpl implements IBookDAO {
 		} catch (Exception e) {
 			throw new InternalServerError();
 		}
+	}
+	
+	@Transactional
+	public Book getBookByBookId(int id){
+		return hibernateUtil.getBook(id);
+	}
+
+	@Override
+	@Transactional
+	public int uploadImage(Book book) {
+		hibernateUtil.update(book);
+		String query="UPDATE Book Set bookImage=:image where bookId=:id";
+		Query<Book> hQuery = hibernateUtil.createQuery(query);
+		hQuery.setParameter("image",book.getBookImage());
+		hQuery.setParameter("id", book.getBookId());
+		return hQuery.executeUpdate();
 	}
 }

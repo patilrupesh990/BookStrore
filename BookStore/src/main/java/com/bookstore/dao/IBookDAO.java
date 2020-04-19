@@ -9,6 +9,8 @@ public interface IBookDAO {
 	public void updateBook(Book book,String bookName);
 	public Book getCurrentBook(int bookName);
 	public Book getBookByName(String bookName);
-	public int deleteBook(String bookName);
+	public Book getBookByBookId(int id);
+	public int deleteBook(int id);
 	public List<Book> getAllBooks();
+	public int uploadImage(Book book);
 }

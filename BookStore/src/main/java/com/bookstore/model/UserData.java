@@ -15,7 +15,7 @@ public class UserData {
 	private String password;
 	private String email;
 	private String gender;
-	private String phNo;
+	private Long phNo;
 	private String userName;
 	private String creationTime;
 	private String updateTime;

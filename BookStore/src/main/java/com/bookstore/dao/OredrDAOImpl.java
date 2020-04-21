@@ -1,5 +1,7 @@
 package com.bookstore.dao;
 
+import java.util.List;
+
 import javax.transaction.Transactional;
 
 import org.hibernate.query.Query;
@@ -36,5 +38,14 @@ public class OredrDAOImpl implements IOrderDAO{
 		}catch (Exception e) {
 			return 0;
 		}
+	}
+	
+	@Transactional
+	@Override
+	public List<Order> getOrderList(int userId) {
+		String query="FROM Order where userId=:id";
+		Query<Order> hQuery=hibernateUtil.select(query);
+		hQuery.setParameter("id", userId);
+		return hQuery.list();
 	}
 	}

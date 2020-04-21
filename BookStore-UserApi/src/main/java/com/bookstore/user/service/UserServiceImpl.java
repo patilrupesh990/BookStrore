@@ -52,7 +52,7 @@ public class UserServiceImpl implements IUserService {
 			user.setCreationTime(DateValidator.getCurrentDate());
 			userDao.register(user);
 
-			String link = "http://localhost:8092/users/activ/" + generateToken.generateToken(user.getUId());
+			String link = "http://localhost:4200/activate/" + generateToken.generateToken(user.getUId());
 			emailGenerate.sendEmail(user.getEmail(), "Foondu Notes Varification", link);
 			return ResponseEntity.status(HttpStatus.ACCEPTED)
 					.body(new UserResponse(208, "Verification Link Sent to your email ===>" + user.getEmail()
@@ -81,21 +81,31 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public ResponseEntity<Object> loginUser(String email, String password) {
 		Optional<User> user = Optional.ofNullable(userDao.getUser(email));
-		if (user.isPresent() && passwordEncryption.passwordEncoder().matches(password, user.get().getPassword())) {
-			return ResponseEntity.status(HttpStatus.ACCEPTED).body(new LoginSuccessResponse(user.get().getFirstName(),
-					user.get().getLastName(), generateToken.generateToken(user.get().getUId()), "Login Success", 202));
+		if (user.get().isActivate()) {
+			if (user.isPresent() && passwordEncryption.passwordEncoder().matches(password, user.get().getPassword())) {
+				return ResponseEntity.status(HttpStatus.ACCEPTED)
+						.body(new LoginSuccessResponse(user.get().getFirstName(), user.get().getLastName(),
+								generateToken.generateToken(user.get().getUId()), "Login Success", 202));
+			} else {
+				throw new AuthenticationFailedException("Invalid UserName Or Password", HttpStatus.BAD_REQUEST);
+			}
 		} else {
-			throw new AuthenticationFailedException("Invalid UserName Or Password", HttpStatus.BAD_REQUEST);
+			throw new AuthenticationFailedException("Please Verify Email Before Login", HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	public ResponseEntity<Object> loginAdmin(String email, String password) {
 		Optional<User> user = Optional.ofNullable(userDao.getUser(email));
-		if (user.isPresent() && user.get().isSeller()) {
-			return ResponseEntity.status(HttpStatus.ACCEPTED).body(new LoginSuccessResponse(user.get().getFirstName(),
-					user.get().getLastName(), generateToken.generateToken(user.get().getUId()), "Login Success", 202));
+		if (user.get().isActivate()) {
+			if (user.isPresent() && user.get().isSeller()&&passwordEncryption.passwordEncoder().matches(password, user.get().getPassword())) {
+				return ResponseEntity.status(HttpStatus.ACCEPTED)
+						.body(new LoginSuccessResponse(user.get().getFirstName(), user.get().getLastName(),
+								generateToken.generateToken(user.get().getUId()), "Login Success", 202));
+			} else {
+				throw new AuthenticationFailedException("Invalid UserName Or Password", HttpStatus.BAD_REQUEST);
+			}
 		} else {
-			throw new AuthenticationFailedException("Invalid UserName Or Password", HttpStatus.BAD_REQUEST);
+			throw new AuthenticationFailedException("Please Verify Email Before Login", HttpStatus.BAD_REQUEST);
 		}
 	}
 

@@ -1,5 +1,8 @@
 package com.bookstore.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import com.bookstore.exception.UserDoesNotExistException;
 import com.bookstore.model.Book;
 import com.bookstore.model.Order;
 import com.bookstore.model.UserData;
+import com.bookstore.response.OrderListResponse;
 import com.bookstore.response.OrderResponse;
 import com.bookstore.util.JwtTokenUtil;
 
@@ -23,9 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class OrderServiceImpl implements IOrderservice{
-	
-	@Autowired  
+public class OrderServiceImpl implements IOrderservice {
+
+	@Autowired
 	IOrderDAO orderDao;
 	@Autowired
 	BookDaoImpl bookDao;
@@ -34,15 +38,15 @@ public class OrderServiceImpl implements IOrderservice{
 	@Autowired
 	private JwtTokenUtil generateToken;
 	static UserData userData;
-	
+
 	/**
 	 *
 	 */
 	@Override
-	public ResponseEntity<Object> makeOrder(String token,int id,int quantity) {
-		if(verifyUser(token)) {
-			Book book=bookDao.getBookByBookId(id);
-			Order order=new Order();
+	public ResponseEntity<Object> makeOrder(String token, int id, int quantity) {
+		if (verifyUser(token)) {
+			Book book = bookDao.getBookByBookId(id);
+			Order order = new Order();
 			order.setBookId(id);
 			order.setUserId(userData.getUId());
 			order.setQuantity(quantity);
@@ -51,37 +55,49 @@ public class OrderServiceImpl implements IOrderservice{
 			order.setCustomerName(userData.getFirstName());
 			order.setEmail(userData.getEmail());
 			order.setPhNo(userData.getPhNo());
-			order.setTotal(order.getPrice()*order.getQuantity());
-			
-			
-			if(orderDao.addOrder(order)>0) {
+			order.setTotal(order.getPrice() * order.getQuantity());
+
+			if (orderDao.addOrder(order) > 0) {
 				System.out.println("Added successfully");
-				return ResponseEntity.status(HttpStatus.ACCEPTED)
-						.body(new OrderResponse(202,"Order Added to cart"));
+				return ResponseEntity.status(HttpStatus.ACCEPTED).body(new OrderResponse(202, "Order Added to cart"));
 			}
+		} else {
+			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
 		}
-		else {
-			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);		}
 		return null;
 	}
 
 	@Override
+	public ResponseEntity<Object> getCartList(String token) {
+		if (verifyUser(token)) {
+			Optional<List<Order>> orders=Optional.ofNullable(orderDao.getOrderList(userData.getUId()));
+			if(orders.isPresent()) {
+				return ResponseEntity.status(HttpStatus.ACCEPTED).body(new OrderListResponse(202, "total books in cart"+orders.get().size(), orders.get()));
+			}else {
+				return ResponseEntity.status(HttpStatus.ACCEPTED).body(new OrderResponse(202, "No any Books Added to cart"));
+			}
+		}
+		throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
+	}
+
+	@Override
 	public ResponseEntity<Object> cancelOrder() {
-		
+
 		return null;
 	}
-	
+
 	public boolean verifyUser(String token) {
 		log.info("-------->>>>>>>>>>>>>Calling USerApi From NotesApi<<<<<<<<<<<<<<<<--------------------");
 		userData = restTemplate.getForObject("http://localhost:8092/users/" + token, UserData.class);
 		log.info("--------->>>>>>>>>>>>Accessing DataFrom UserApi<<<<<<<<<<<---------------------");
 		try {
-		log.info("verifyUserApi Using RestTemplate From UserApi Success--------->:"
-				+ (userData.getUId() == generateToken.parseToken(token)));	
-		log.info("erererererererererererererereererereereerererhsghgghsghgsd"+userData.getPhNo());
-		return (userData.getUId() == generateToken.parseToken(token));
-		}catch (SignatureVerificationException|JWTDecodeException|AlgorithmMismatchException e) {
+			log.info("verifyUserApi Using RestTemplate From UserApi Success--------->:"
+					+ (userData.getUId() == generateToken.parseToken(token)));
+			log.info("erererererererererererererereererereereerererhsghgghsghgsd" + userData.getPhNo());
+			return (userData.getUId() == generateToken.parseToken(token));
+		} catch (SignatureVerificationException | JWTDecodeException | AlgorithmMismatchException e) {
 			throw new InvalidTokenOrExpiredException("Invalid Token or Token Expired", HttpStatus.BAD_REQUEST);
 		}
 	}
+
 }

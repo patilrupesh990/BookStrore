@@ -6,5 +6,5 @@ public interface IOrderservice {
 
 	public ResponseEntity<Object> makeOrder(String token,int id,int quantity);
 	public ResponseEntity<Object> cancelOrder();
-	
+	public ResponseEntity<Object> getCartList(String token);
 }

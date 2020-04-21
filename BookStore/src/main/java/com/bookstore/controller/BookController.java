@@ -3,6 +3,7 @@ package com.bookstore.controller;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,8 +45,17 @@ public class BookController {
 	}
 	
 	@PostMapping("/upload")
-	public ResponseEntity<BookResponse> uploadImage(@RequestParam("imageFile") MultipartFile file,@RequestParam("bookId") int bookId,@RequestHeader String token) throws IOException {
-		return bookservice.uploadBookImage(token, file.getBytes(), bookId);
+	public ResponseEntity<BookResponse> uploadImage(@RequestParam("imageFile") MultipartFile file,@RequestHeader String token,@RequestParam("bookId") int  bookId) throws IOException {
+//		return bookservice.uploadBookImage(token, file.getBytes(),);
+		String message = "";
+	    try {
+	      bookservice.saveBookImage(file,bookId,token);
+	      message = "Uploaded the file successfully: " + file.getOriginalFilename();
+	      return ResponseEntity.status(HttpStatus.OK).body(new BookResponse(202, message));
+	    } catch (Exception e) {
+	      message = "Could not upload the file: " + file.getOriginalFilename() + "!";
+	      return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new BookResponse(203,"error"));
+	    }
 	}
 	
 	@GetMapping("/getAllBooks")

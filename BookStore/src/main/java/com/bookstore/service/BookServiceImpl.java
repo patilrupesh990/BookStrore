@@ -1,5 +1,8 @@
 package com.bookstore.service;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.auth0.jwt.exceptions.AlgorithmMismatchException;
 import com.auth0.jwt.exceptions.JWTDecodeException;
@@ -20,7 +24,6 @@ import com.bookstore.exception.UserDoesNotExistException;
 import com.bookstore.model.Book;
 import com.bookstore.model.UserData;
 import com.bookstore.response.BookResponse;
-import com.bookstore.util.BLOBUtil;
 import com.bookstore.util.JwtTokenUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +38,9 @@ public class BookServiceImpl implements IBookService {
 	RestTemplate restTemplate;
 	@Autowired
 	private JwtTokenUtil generateToken;
-	
+
+	private static String UPLOADED_FOLDER = "G:/BookStore-FrontEnd/BookStoreFrontEnd/src/assets/BookImages/";
+//	G:\BookStore-FrontEnd\BookStoreFrontEnd
 	static int userId;
 
 	@Override
@@ -106,22 +111,7 @@ public class BookServiceImpl implements IBookService {
 		}
 	}
 
-	@Override
-	public ResponseEntity<BookResponse> uploadBookImage(String token, byte[] bytes, int bookId) {
-		if (verifyUser(token)) {
-			Book book=bookdao.getCurrentBook(bookId);
-			if ( book!= null) {
-				book.setBookImage(BLOBUtil.compressBytes(bytes));
-				bookdao.uploadImage(book);
-				return ResponseEntity.status(HttpStatus.ACCEPTED)
-						.body(new BookResponse(202, "Image Uplaoded Successfully"));
-			}
-		} else {
-			throw new UserDoesNotExistException("User Does Not Exist", HttpStatus.BAD_REQUEST);
-		}
-		return null;
-	}
-
+	
 	@Override
 	public ResponseEntity<BookResponse> updateBookDetails(String bookName, Book updatedBook, String token) {
 		if (verifyUser(token)) {
@@ -150,5 +140,18 @@ public class BookServiceImpl implements IBookService {
 			throw new InvalidTokenOrExpiredException("Invalid Token or Token Expired", HttpStatus.BAD_REQUEST);
 		}
 	}
+	
+	
+	 @Override
+	  public void saveBookImage(MultipartFile file,int bookId,String token) {
+	    try {
+	    	byte[] bytes = file.getBytes();
+	    	Path path = Paths.get(UPLOADED_FOLDER + file.getOriginalFilename());
+	    	Files.write(path, bytes);
+	    	bookdao.uploadImage(bookId, "assets/BookImages/"+file.getOriginalFilename());
+	    } catch (Exception e) {
+	      throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+	    }
+	  }
 
 }

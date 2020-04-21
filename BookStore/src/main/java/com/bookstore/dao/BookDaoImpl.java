@@ -92,12 +92,12 @@ public class BookDaoImpl implements IBookDAO {
 
 	@Override
 	@Transactional
-	public int uploadImage(Book book) {
-		hibernateUtil.update(book);
+	public int uploadImage(int bookId,String bookImage) {
+	
 		String query="UPDATE Book Set bookImage=:image where bookId=:id";
 		Query<Book> hQuery = hibernateUtil.createQuery(query);
-		hQuery.setParameter("image",book.getBookImage());
-		hQuery.setParameter("id", book.getBookId());
+		hQuery.setParameter("image",bookImage);
+		hQuery.setParameter("id", bookId);
 		return hQuery.executeUpdate();
 	}
 }

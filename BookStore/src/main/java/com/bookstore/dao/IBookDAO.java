@@ -12,5 +12,5 @@ public interface IBookDAO {
 	public Book getBookByBookId(int id);
 	public int deleteBook(int id);
 	public List<Book> getAllBooks();
-	public int uploadImage(Book book);
+	public int uploadImage(int bookId,String bookImage);
 }

@@ -10,4 +10,7 @@ public interface IOrderDAO {
 	public int deleteOrder(int bookId);
 
 	public List<Order> getOrderList(int userId);
+	public int updateQuantity(Order order);
+	public int removeAllOrder(int userId);
+
 }

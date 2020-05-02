@@ -40,6 +40,38 @@ public class OredrDAOImpl implements IOrderDAO{
 		}
 	}
 	
+	@Override
+	@Transactional
+	public int removeAllOrder(int userId) {
+		
+		try {
+			String query="DELETE FROM Order WHERE userId=:uid";
+			Query<Order> hQuery=hibernateUtil.createQuery(query);
+			hQuery.setParameter("uid", userId);
+			return hQuery.executeUpdate();
+		}catch (Exception e) {
+			return 0;
+		}
+	}
+
+	
+	
+	@Transactional
+	@Override
+	public int updateQuantity(Order order) {
+		try {
+		String query="UPDATE Order SET quantity=:qty,total=:total WHERE OrderId=:id";
+		Query<Order> hQuery=hibernateUtil.createQuery(query);
+		hQuery.setParameter("qty", order.getQuantity());
+		hQuery.setParameter("id", order.getOrderId());
+		hQuery.setParameter("total", order.getQuantity()*order.getPrice());
+		return hQuery.executeUpdate();
+		}catch (Exception e) {
+			System.out.println();
+			return 0;
+		}
+	}
+	
 	@Transactional
 	@Override
 	public List<Order> getOrderList(int userId) {
@@ -48,4 +80,5 @@ public class OredrDAOImpl implements IOrderDAO{
 		hQuery.setParameter("id", userId);
 		return hQuery.list();
 	}
+	
 	}

@@ -46,7 +46,6 @@ public class BookController {
 	
 	@PostMapping("/upload")
 	public ResponseEntity<BookResponse> uploadImage(@RequestParam("imageFile") MultipartFile file,@RequestHeader String token,@RequestParam("bookId") int  bookId) throws IOException {
-//		return bookservice.uploadBookImage(token, file.getBytes(),);
 		String message = "";
 	    try {
 	      bookservice.saveBookImage(file,bookId,token);
